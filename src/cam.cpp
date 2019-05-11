@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     {
         i++;
         clock_t t0 = clock();
-    #define USE_FUNCTION
+    //#define USE_FUNCTION
     #ifdef USE_FUNCTION
         if( cam_step(p_camera, &cam_img, &cam_format, 1) < 0 ) continue;
     #else
@@ -109,10 +109,10 @@ int main(int argc, char* argv[])
             p_camera->start();
             continue;
         }
-        detect_aruco_marker(cam_img);
+        //detect_aruco_marker(cam_img);
     #endif
         //std::cout << "Time spent: " << (float)(clock()-t0)/CLOCKS_PER_SEC << std::endl;
-        if(!(i%10)) udp_bc((char*)cam_img.data, cam_format.image_size);
+        if(!(i%5)) udp_bc((char*)cam_img.data, cam_format.image_size);
         //cv::imshow(window_name, cam_img);
         char key = cv::waitKey(10);
 
