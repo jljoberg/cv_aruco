@@ -13,8 +13,10 @@
 
 #include "detectAruco.h"
 #include "withrobot/withrobot_camera.hpp"	
+#include "udp/udp.h"
 
 //using namespace cv;
+
 
 int cam_exposure_inc(Withrobot::Camera* p_cam, int increment)
 {
@@ -59,6 +61,7 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
 
 int main(int argc, char* argv[])
 {
+    udp_init();
     //draw_aruco_marker();
     std::ios::sync_with_stdio(false);
 
@@ -78,7 +81,7 @@ int main(int argc, char* argv[])
     cv::Size cam_size(cam_format.width, cam_format.height);
 
     const char* window_name = "Display oCam";
-    cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE|cv::WINDOW_KEEPRATIO);
+    //cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE|cv::WINDOW_KEEPRATIO);
 
     // Initialize image storage 
     cv::Mat cam_img(cam_size, CV_8UC1);
@@ -89,8 +92,10 @@ int main(int argc, char* argv[])
     }
 
     bool quit = false;
+    int i = 0;
     while(!quit)
     {
+        i++;
         clock_t t0 = clock();
     #define USE_FUNCTION
     #ifdef USE_FUNCTION
@@ -107,8 +112,8 @@ int main(int argc, char* argv[])
         detect_aruco_marker(cam_img);
     #endif
         //std::cout << "Time spent: " << (float)(clock()-t0)/CLOCKS_PER_SEC << std::endl;
-        
-        cv::imshow(window_name, cam_img);
+        if(!(i%10)) udp_bc((char*)cam_img.data, cam_format.image_size);
+        //cv::imshow(window_name, cam_img);
         char key = cv::waitKey(10);
 
         if(key=='q' || key=='Q') quit = true;
