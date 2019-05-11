@@ -31,7 +31,7 @@ int udp_init(int is_listner=0)
     addr_bc.sin_family = AF_INET;
     // addr_bc.sin_addr.s_addr = INADDR_ANY;
     // addr_bc.sin_addr.s_addr = INADDR_BROADCAST;
-    inet_pton(AF_INET, "129.241.154.255", &(addr_bc.sin_addr));
+    inet_pton(AF_INET, "129.241.154.39", &(addr_bc.sin_addr));
     // inet_pton(AF_INET, "127.0.0.1", &(addr_bc.sin_addr));
     addr_bc.sin_port = htons(UDP_BC_PORT);
 
@@ -57,7 +57,7 @@ int udp_bc(char* data, int data_len)
         n = sendto(sock,&(data[seg]),pck_size,0,(struct sockaddr *)&addr_bc,addr_len);
         data[seg+pck_size] = tmp;
         i++;
-        printf("Sending seg %d\n", seg);
+        //printf("Sending seg %d\n", seg);
         if(n<0) printf("==== ERROR SENDING ====");
     }
     printf("Sending %d bytes\ti frames: %d\n", n, i);

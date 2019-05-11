@@ -48,7 +48,7 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
         cv::Scalar mean, std_dev;
         // cv::meanStdDev(*p_cam_img, mean, std_dev, *p_cam_img);
         mean = cv::mean(*p_cam_img, mask);
-        printf("Mean is %f\n", mean[0]);
+        // printf("Mean is %f\n", mean[0]);
 
         if(mean[0] < desired_meanPx_range[0]) cam_exposure_inc(p_camera, 1);
         if(mean[0] > desired_meanPx_range[1]) cam_exposure_inc(p_camera, -1);
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     {
         i++;
         clock_t t0 = clock();
-    //#define USE_FUNCTION
+    #define USE_FUNCTION
     #ifdef USE_FUNCTION
         if( cam_step(p_camera, &cam_img, &cam_format, 1) < 0 ) continue;
     #else
