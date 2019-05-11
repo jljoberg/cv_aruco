@@ -63,16 +63,18 @@ int main(int argc, char* argv[])
     std::ios::sync_with_stdio(false);
 
     const char* vid_io_file = "/dev/video0";
-    Withrobot::Camera camera(vid_io_file);
+    
+    Withrobot::Camera* p_camera;
+    p_camera = new Withrobot::Camera(vid_io_file);
 
     // TODO: Enable selection of different cameras
-    camera.set_format(1280, 960, Withrobot::fourcc_to_pixformat('G','R','E','Y'), 1, 30);
-    // camera.set_control("Exposure, Auto", 0x3);
-    camera.set_control("Brightness", 32);
+    p_camera->set_format(1280, 960, Withrobot::fourcc_to_pixformat('G','R','E','Y'), 1, 30);
+    // p_camera->set_control("Exposure, Auto", 0x3);
+    p_camera->set_control("Brightness", 32);
 
     // Get image size
     Withrobot::camera_format cam_format;
-    camera.get_current_format(cam_format);
+    p_camera->get_current_format(cam_format);
     cv::Size cam_size(cam_format.width, cam_format.height);
 
     const char* window_name = "Display oCam";
@@ -81,7 +83,7 @@ int main(int argc, char* argv[])
     // Initialize image storage 
     cv::Mat cam_img(cam_size, CV_8UC1);
 
-    if (!camera.start()) {
+    if (!p_camera->start()) {
     	perror("Failed to start.");
     	exit(0);
     }
@@ -92,14 +94,14 @@ int main(int argc, char* argv[])
         clock_t t0 = clock();
     #define USE_FUNCTION
     #ifdef USE_FUNCTION
-        if( cam_step(&camera, &cam_img, &cam_format, 1) < 0 ) continue;
+        if( cam_step(p_camera, &cam_img, &cam_format, 1) < 0 ) continue;
     #else
-        int out_size = camera.get_frame(cam_img.data, cam_format.image_size, 1);
+        int out_size = p_camera->get_frame(cam_img.data, cam_format.image_size, 1);
         if(out_size == -1)
         {
             std::cout << "step fail\n";
-            camera.stop();
-            camera.start();
+            p_camera->stop();
+            p_camera->start();
             continue;
         }
         detect_aruco_marker(cam_img);
@@ -111,4 +113,6 @@ int main(int argc, char* argv[])
 
         if(key=='q' || key=='Q') quit = true;
     }
+    delete p_camera;
+    return 1;
 }
