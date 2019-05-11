@@ -57,7 +57,7 @@ int udp_bc(char* data, int data_len)
         n = sendto(sock,&(data[seg]),pck_size,0,(struct sockaddr *)&addr_bc,addr_len);
         data[seg+pck_size] = tmp;
         i++;
-        printf("Sending seg %d\n", seg)
+        printf("Sending seg %d\n", seg);
         if(n<0) printf("==== ERROR SENDING ====");
     }
     printf("Sending %d bytes\ti frames: %d\n", n, i);
