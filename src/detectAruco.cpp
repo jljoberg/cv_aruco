@@ -4,10 +4,18 @@
 #include <opencv2/aruco.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include <algorithm>
+#include <vector>
 #include <iostream>
 
 #include "detectAruco.h"
 
+#ifdef PRINT_ARUCO
+#define dbg_print(...) printf(__VA_ARGS__)
+#else
+#define dbg_print(...)
+#endif
+ 
 void draw_aruco_marker(void)
 {
     cv::Mat markerImage;
@@ -44,6 +52,7 @@ void detect_aruco_marker(cv::Mat img)
 
     //cv::aruco::detectMarkers(img, dictionary, markerCorners, markerIds);
     cv::aruco::drawDetectedMarkers(img, markerCorners, markerIds);
+    if(std::count(markerIds.begin(), markerIds.end(), 3)) dbg_print("=== FOUND ID 3 ===\n");
 
     //std::cout << "Detected " << markerIds.size() << " markers | Rejected " << rejectedCandidates.size() << std::endl;
 
