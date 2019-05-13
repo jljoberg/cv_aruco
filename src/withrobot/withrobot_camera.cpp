@@ -31,7 +31,7 @@
 using namespace Withrobot;
 
 #define WITHROBOT_CAMERA_IOCTL_RETRY     5
-#define WITHROBOT_CAMERA_REQUEST_BUFFER_COUNT   5
+#define WITHROBOT_CAMERA_REQUEST_BUFFER_COUNT   1
 
 /**
  * Cam class constructor
