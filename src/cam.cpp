@@ -15,6 +15,10 @@
 #include "withrobot/withrobot_camera.hpp"	
 #include "udp/udp.h"
 
+#include <chrono>
+
+namespace chr = std::chrono;
+
 //using namespace cv;
 
 
@@ -45,18 +49,35 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
     {
         cv::Mat mask(p_cam_img->size(), CV_8UC1);
         mask.setTo(cv::Scalar(255));
-        cv::Scalar mean, std_dev;
-        // cv::meanStdDev(*p_cam_img, mean, std_dev, *p_cam_img);
+        cv::Scalar mean;
         mean = cv::mean(*p_cam_img, mask);
         // printf("Mean is %f\n", mean[0]);
 
         if(mean[0] < desired_meanPx_range[0]) cam_exposure_inc(p_camera, 1);
         if(mean[0] > desired_meanPx_range[1]) cam_exposure_inc(p_camera, -1);
 
-        //return 0;
+        //return out_size;
     }
+    
+#ifdef TIME_ARUCO
+    static int i=0;
+    static chr::milliseconds t_storage = chr::milliseconds(0);
+    chr::time_point<chr::high_resolution_clock> t0, t;
+    t0 = chr::high_resolution_clock::now();
+#endif
     detect_aruco_marker(*p_cam_img);
-    return 0;
+#ifdef TIME_ARUCO
+    t = chr::high_resolution_clock::now();
+    t_storage += ( chr::duration_cast<chr::milliseconds>(t-t0) );
+    i++;
+    if(i>=20)
+    {
+        std::cout << "Avg time spent detecting: " << t_storage.count()/i << std::endl;
+        t_storage = chr::milliseconds(0);
+        i = 0;
+    }
+#endif
+    return out_size;
 }
 
 int main(int argc, char* argv[])
@@ -72,16 +93,12 @@ int main(int argc, char* argv[])
 
     // TODO: Enable selection of different cameras
     p_camera->set_format(1280, 960, Withrobot::fourcc_to_pixformat('G','R','E','Y'), 1, 30);
-    // p_camera->set_control("Exposure, Auto", 0x3);
     p_camera->set_control("Brightness", 32);
 
     // Get image size
     Withrobot::camera_format cam_format;
     p_camera->get_current_format(cam_format);
     cv::Size cam_size(cam_format.width, cam_format.height);
-
-    const char* window_name = "Display oCam";
-    //cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE|cv::WINDOW_KEEPRATIO);
 
     // Initialize image storage 
     cv::Mat cam_img(cam_size, CV_8UC1);
@@ -95,28 +112,29 @@ int main(int argc, char* argv[])
     int i = 0;
     while(!quit)
     {
-        i++;
-        clock_t t0 = clock();
-    #define USE_FUNCTION
-    #ifdef USE_FUNCTION
+#ifdef CAM_LOOP_PRINT // Setup start time
+        static int print_i=0;
+        static chr::milliseconds t_storage = chr::milliseconds(0);
+        chr::time_point<chr::high_resolution_clock> t0, t;
+        t0 = chr::high_resolution_clock::now();
+#endif
         if( cam_step(p_camera, &cam_img, &cam_format, 1) < 0 ) continue;
-    #else
-        int out_size = p_camera->get_frame(cam_img.data, cam_format.image_size, 1);
-        if(out_size == -1)
+#ifdef CAM_LOOP_PRINT // Set end time and print
+        t = chr::high_resolution_clock::now();
+        t_storage += ( chr::duration_cast<chr::milliseconds>(t-t0) );
+        print_i++;
+        if(print_i>=20)
         {
-            std::cout << "step fail\n";
-            p_camera->stop();
-            p_camera->start();
-            continue;
+            std::cout << "Avg time each frame: " << t_storage.count()/print_i << std::endl;
+            t_storage = chr::milliseconds(0);
+            print_i = 0;
         }
-        //detect_aruco_marker(cam_img);
-    #endif
-        //std::cout << "Time spent: " << (float)(clock()-t0)/CLOCKS_PER_SEC << std::endl;
-        if(!(i%5)) udp_bc((char*)cam_img.data, cam_format.image_size);
-        //cv::imshow(window_name, cam_img);
-        char key = cv::waitKey(10);
-
-        if(key=='q' || key=='Q') quit = true;
+#endif
+        i++;
+        if(!(i%40)){
+            udp_bc((char*)cam_img.data, cam_format.image_size);
+        }
+        
     }
     delete p_camera;
     return 1;

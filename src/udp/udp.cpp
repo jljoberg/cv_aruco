@@ -60,7 +60,9 @@ int udp_bc(char* data, int data_len)
         //printf("Sending seg %d\n", seg);
         if(n<0) printf("==== ERROR SENDING ====");
     }
+#ifdef UDP_SEND_PRINT
     printf("Sending %d bytes\ti frames: %d\n", n, i);
+#endif
     return n;
 }
 
