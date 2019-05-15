@@ -80,6 +80,7 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
     return out_size;
 }
 
+#ifdef BUILD_CAM_MAIN
 int main(int argc, char* argv[])
 {
     udp_init();
@@ -139,3 +140,4 @@ int main(int argc, char* argv[])
     delete p_camera;
     return 1;
 }
+#endif
