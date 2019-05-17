@@ -51,13 +51,12 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
         mask.setTo(cv::Scalar(255));
         cv::Scalar mean;
         mean = cv::mean(*p_cam_img, mask);
-        // printf("Mean is %f\n", mean[0]);
 
         if(mean[0] < desired_meanPx_range[0]) cam_exposure_inc(p_camera, 1);
         if(mean[0] > desired_meanPx_range[1]) cam_exposure_inc(p_camera, -1);
 
-        //return out_size;
-    }
+        // return out_size
+    }   // end if(calibrate)
     
 #ifdef TIME_ARUCO
     static int i=0;
@@ -65,7 +64,10 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
     chr::time_point<chr::high_resolution_clock> t0, t;
     t0 = chr::high_resolution_clock::now();
 #endif
-    detect_aruco_marker(*p_cam_img);
+    cv::Point2f target_center;
+    if(detect_aruco_marker(*p_cam_img, &target_center) != 1) return out_size;
+    cv::circle(*p_cam_img, target_center, 20, cv::Scalar(255), -1, 8);
+    
 #ifdef TIME_ARUCO
     t = chr::high_resolution_clock::now();
     t_storage += ( chr::duration_cast<chr::milliseconds>(t-t0) );
@@ -80,11 +82,11 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
     return out_size;
 }
 
+#define BUILD_CAM_MAIN
 #ifdef BUILD_CAM_MAIN
 int main(int argc, char* argv[])
 {
     udp_init();
-    //draw_aruco_marker();
     std::ios::sync_with_stdio(false);
 
     const char* vid_io_file = "/dev/video0";
@@ -132,7 +134,7 @@ int main(int argc, char* argv[])
         }
 #endif
         i++;
-        if(!(i%40)){
+        if(!(i%10)){
             udp_bc((char*)cam_img.data, cam_format.image_size);
         }
         

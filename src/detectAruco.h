@@ -6,6 +6,6 @@
 #include <opencv2/aruco.hpp>
 
 void draw_aruco_marker(void);
-void detect_aruco_marker(cv::Mat img);
+int detect_aruco_marker(cv::Mat img, cv::Point2f* p_detected_center);
 
 #endif
