@@ -34,7 +34,7 @@ int cam_exposure_inc(Withrobot::Camera* p_cam, int increment)
     return 0;
 }
 
-int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_format *p_cam_format, bool calibrate)
+int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_format *p_cam_format, bool calibrate, cv::Point2f* p_target_center)
 {
     int desired_meanPx_range[2] = {100, 140};
     int out_size = p_camera->get_frame(p_cam_img->data, p_cam_format->image_size, 1);
@@ -64,9 +64,9 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
     chr::time_point<chr::high_resolution_clock> t0, t;
     t0 = chr::high_resolution_clock::now();
 #endif
-    cv::Point2f target_center;
-    if(detect_aruco_marker(*p_cam_img, &target_center) != 1) return out_size;
-    cv::circle(*p_cam_img, target_center, 20, cv::Scalar(255), -1, 8);
+    // cv::Point2f target_center;
+    if(detect_aruco_marker(*p_cam_img, p_target_center) != 1) return out_size;
+    cv::circle(*p_cam_img, *p_target_center, 20, cv::Scalar(255), -1, 8);
     
 #ifdef TIME_ARUCO
     t = chr::high_resolution_clock::now();
@@ -82,7 +82,7 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
     return out_size;
 }
 
-#define BUILD_CAM_MAIN
+//#define BUILD_CAM_MAIN
 #ifdef BUILD_CAM_MAIN
 int main(int argc, char* argv[])
 {
