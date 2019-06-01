@@ -8,8 +8,11 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <string.h> //memcpy
+#include <unistd.h>
 
 #include <iostream> //min
+
+#define POS_EOT 7
 
 #define UDP_BC_PORT 12001
 #define MAX_UDP_LEN 60000
@@ -30,8 +33,9 @@ int udp_init(int is_listner=0)
 
     addr_bc.sin_family = AF_INET;
     // addr_bc.sin_addr.s_addr = INADDR_ANY;
-    // addr_bc.sin_addr.s_addr = INADDR_BROADCAST;
-    inet_pton(AF_INET, "129.241.154.39", &(addr_bc.sin_addr));
+    if(!is_listner) addr_bc.sin_addr.s_addr = INADDR_BROADCAST;
+    else            addr_bc.sin_addr.s_addr = INADDR_ANY;
+    // inet_pton(AF_INET, "129.241.154.39", &(addr_bc.sin_addr));
     // inet_pton(AF_INET, "127.0.0.1", &(addr_bc.sin_addr));
     addr_bc.sin_port = htons(UDP_BC_PORT);
 
@@ -39,7 +43,8 @@ int udp_init(int is_listner=0)
 
     if(is_listner)
     {
-        if(  bind(sock, (struct sockaddr*)&addr_bc, addr_len)  <0) error("bind");
+        int bind_ret = bind(sock, (struct sockaddr*)&addr_bc, addr_len);
+        if( bind_ret<0) error("bind");
     }
     return 1;
 }
@@ -52,10 +57,15 @@ int udp_bc(char* data, int data_len)
     for(int seg=0; seg<data_len; seg+=MAX_UDP_LEN-1)
     {
         int pck_size = std::min(MAX_UDP_LEN, data_len-seg);
-        tmp = data[seg+pck_size];
+        tmp = data[seg+pck_size-1];
         data[seg+pck_size-1] = (char)i;
+        if(seg+MAX_UDP_LEN-1 >= data_len)
+        {
+            data[seg+pck_size-1] |= (1<<POS_EOT); // end of transfer bit
+            //usleep(7e3);
+        }
         n = sendto(sock,&(data[seg]),pck_size,0,(struct sockaddr *)&addr_bc,addr_len);
-        data[seg+pck_size] = tmp;
+        data[seg+pck_size-1] = tmp;
         i++;
         //printf("Sending seg %d\n", seg);
         if(n<0) printf("==== ERROR SENDING ====");
@@ -74,13 +84,15 @@ int udp_rcv_bc(char*data, int max_data_len)
         char buf[MAX_UDP_LEN];
         if( (n_bytes_rcvd = recvfrom(sock,buf,MAX_UDP_LEN, 0, NULL,NULL) )<0) continue;
         printf("Rcvd %d bytes\n", n_bytes_rcvd);
-        int seg = (int)buf[n_bytes_rcvd-1]*(MAX_UDP_LEN-1);
-        printf("Seqment: %d\n", (int)buf[n_bytes_rcvd-1]) ;
+        buf[n_bytes_rcvd-1] &= ~(1<<POS_EOT);
+        int seg = (int) ( buf[n_bytes_rcvd-1] ) * (MAX_UDP_LEN-1) ;
+        printf("Seqment: %d\n", seg) ;
 
         if(seg+n_bytes_rcvd > max_data_len ){
             printf("==== SEGMENT OUT OF BOUND === seq+n = %d\n", seg+n_bytes_rcvd);
             continue;
         }
         memcpy(&data[seg], buf, n_bytes_rcvd-1);
+        if( buf[n_bytes_rcvd-1] & (1<<POS_EOT) ) return i; // Myabe start timer instead of returning at once
     }
 }

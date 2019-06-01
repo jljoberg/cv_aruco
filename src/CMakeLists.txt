@@ -2,12 +2,16 @@
 
 # add_subdirectory(withrobot)
 
+add_compile_options(-DBUILD_CAM_MAIN)
+
 include_directories(${DetectAruco_SOURCE_DIR}/include)
 include_directories(${DetectAruco_SOURCE_DIR}/src/withrobot)
 
 # ============== CAM =================================
 add_executable(  DetectAruco   cam.cpp )
+add_compile_options(-DBUILD_CAM_MAIN)
 set_target_properties( DetectAruco PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 
 target_link_libraries(  DetectAruco PRIVATE  ${OpenCV_LIBS} )
 target_link_libraries(  DetectAruco PRIVATE pthread udev v4l2)

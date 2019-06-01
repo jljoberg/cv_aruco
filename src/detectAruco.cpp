@@ -63,6 +63,7 @@ int detect_aruco_marker(cv::Mat img, cv::Point2f* p_detected_center)
         float avg_y = (markerCorners[index_id][0].y + markerCorners[index_id][1].y + \
                      markerCorners[index_id][2].y + markerCorners[index_id][3].y) / 4;
         dbg_print("\t x=%f\t y=%f\n", avg_x, avg_y);
+        if(p_detected_center==nullptr) return -4;
         *p_detected_center = cv::Point2f(avg_x, avg_y);
         return 1;
     }

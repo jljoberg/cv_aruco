@@ -82,7 +82,7 @@ int cam_step(Withrobot::Camera* p_camera, cv::Mat *p_cam_img, Withrobot::camera_
     return out_size;
 }
 
-//#define BUILD_CAM_MAIN
+// #define BUILD_CAM_MAIN
 #ifdef BUILD_CAM_MAIN
 int main(int argc, char* argv[])
 {
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
         chr::time_point<chr::high_resolution_clock> t0, t;
         t0 = chr::high_resolution_clock::now();
 #endif
-        if( cam_step(p_camera, &cam_img, &cam_format, 1) < 0 ) continue;
+        if( cam_step(p_camera, &cam_img, &cam_format, 1, nullptr) < 0 ) continue;
 #ifdef CAM_LOOP_PRINT // Set end time and print
         t = chr::high_resolution_clock::now();
         t_storage += ( chr::duration_cast<chr::milliseconds>(t-t0) );
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         }
 #endif
         i++;
-        if(!(i%10)){
+        if(!(i%3)){
             udp_bc((char*)cam_img.data, cam_format.image_size);
         }
         
